@@ -6,6 +6,8 @@ namespace skh6075\api\minigame;
 
 use InvalidArgumentException;
 use pocketmine\plugin\Plugin;
+use pocketmine\Server;
+use skh6075\api\minigame\session\MiniGamePlayerSessionManager;
 
 final class MiniGameHandler{
 
@@ -16,6 +18,8 @@ final class MiniGameHandler{
 	 * @var ?Plugin
 	 */
 	private static ?Plugin $registrant = null;
+
+	private static MiniGamePlayerSessionManager $sessionManager;
 
 	/**
 	 * Check if the library is used by the plugin
@@ -32,9 +36,17 @@ final class MiniGameHandler{
 		}
 
 		self::$registrant = $plugin;
+		self::$sessionManager = MiniGamePlayerSessionManager::getInstance();
+		Server::getInstance()->getPluginManager()->registerEvents(new MiniGameEventHandler(self::$sessionManager), $plugin);
 	}
 
 	public static function getPlugin(): Plugin{
 		return self::$registrant;
 	}
+
+	public static function getMiniGamePlayerSessionManager(): MiniGamePlayerSessionManager{
+		return self::$sessionManager;
+	}
+
+
 }

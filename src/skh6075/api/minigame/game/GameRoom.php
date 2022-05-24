@@ -5,7 +5,11 @@ declare(strict_types=1);
 namespace skh6075\api\minigame\game;
 
 use pocketmine\player\Player;
+use pocketmine\scheduler\TaskHandler;
+use skh6075\api\minigame\event\PlayerGameRoomJoinEvent;
+use skh6075\api\minigame\event\PlayerGameRoomQuitEvent;
 use skh6075\api\minigame\generator\MapGenerator;
+use skh6075\api\minigame\session\MiniGamePlayerSessionStorage;
 use skh6075\api\minigame\team\Team;
 use skh6075\api\minigame\team\TeamManager;
 
@@ -25,10 +29,15 @@ abstract class GameRoom{
 	public function __construct(
 		private string $name,
 		private MapGenerator $mapGenerator,
+		private ?TaskHandler $taskHandler = null,
 		protected int $minPlayerCount = 0,
 		protected int $maxPlayerCount = 1,
-		private ?TeamManager $teamManager = null
+		private ?TeamManager $teamManager = null,
 	){}
+
+	final public function getPrefix(): string{
+		return "§l§b[$this->name]§r§7 ";
+	}
 
 	final public function getName(): string{
 		return $this->name;
@@ -58,6 +67,10 @@ abstract class GameRoom{
 		$this->gameMode = $mode;
 	}
 
+	public function getParticipants(): array{
+		return $this->participants;
+	}
+
 	public function isParticipant(Player|string $player): bool{
 		if($player instanceof Player){
 			$player = $player->getUniqueId()->getBytes();
@@ -74,6 +87,15 @@ abstract class GameRoom{
 		if($this->maxPlayerCount <= count($this->participants)){
 			return false;
 		}
+		if($this->gameMode !== self::DEFAULT_MODE){
+			return false;
+		}
+		$ev = new PlayerGameRoomJoinEvent($this, $player, $this->session());
+		$ev->call();
+		if($ev->isCancelled()){
+			return false;
+		}
+
 		$this->participants[$rawUUID] = $player;
 		return true;
 	}
@@ -85,7 +107,11 @@ abstract class GameRoom{
 		if(!isset($this->participants[$player])){
 			return false;
 		}
+
+		(new PlayerGameRoomQuitEvent($this, $player))->call();
+
 		unset($this->participants[$player]);
+		$this->filterOfflineParticipant();
 		return true;
 	}
 
@@ -95,13 +121,24 @@ abstract class GameRoom{
 			$team->reset();
 		}
 		$this->gameMode = self::DEFAULT_MODE;
+		$this->taskHandler = null;
 	}
 
 	public function filterOfflineParticipant(): void{
 		$this->participants = array_filter($this->participants, static fn($player) => $player !== null);
 	}
 
+	final public function getTaskHandler(): ?TaskHandler{
+		return $this->taskHandler;
+	}
+
+	public function setTaskHandler(?TaskHandler $handler = null): void{
+		$this->taskHandler = $handler;
+	}
+
 	abstract public function start(): void;
 
 	abstract public function end(Team|Player|null $winner = null): void;
+
+	abstract public function session(): MiniGamePlayerSessionStorage;
 }
