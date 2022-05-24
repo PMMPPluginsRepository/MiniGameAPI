@@ -9,6 +9,7 @@ use pocketmine\scheduler\TaskHandler;
 use skh6075\api\minigame\event\PlayerGameRoomJoinEvent;
 use skh6075\api\minigame\event\PlayerGameRoomQuitEvent;
 use skh6075\api\minigame\generator\MapGenerator;
+use skh6075\api\minigame\session\MiniGamePlayerSessionManager;
 use skh6075\api\minigame\session\MiniGamePlayerSessionStorage;
 use skh6075\api\minigame\team\Team;
 use skh6075\api\minigame\team\TeamManager;
@@ -138,7 +139,11 @@ abstract class GameRoom{
 
 	abstract public function start(): void;
 
-	abstract public function end(Team|Player|null $winner = null): void;
+	public function end(Team|Player|null $winner = null): void{
+		foreach($this->participants as $player){
+			MiniGamePlayerSessionManager::getInstance()->removeSession($player);
+		}
+	}
 
 	abstract public function session(): MiniGamePlayerSessionStorage;
 }
