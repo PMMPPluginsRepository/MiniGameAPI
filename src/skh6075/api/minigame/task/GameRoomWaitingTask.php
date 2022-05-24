@@ -32,7 +32,7 @@ abstract class GameRoomWaitingTask extends MiniGameTask{
 			/** Game start check override setMode method! */
 			$this->setMode(self::MODE_START);
 		}
-		$this->broadcastActionBarMessage($this->getRoomInformationMessage());
+		$this->room->broadcastActionBarMessage($this->getRoomInformationMessage());
 	}
 
 	/**

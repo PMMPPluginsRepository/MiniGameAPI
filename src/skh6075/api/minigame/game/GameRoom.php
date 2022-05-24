@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace skh6075\api\minigame\game;
 
+use pocketmine\network\mcpe\protocol\SetTitlePacket;
 use pocketmine\player\Player;
 use pocketmine\scheduler\TaskHandler;
+use pocketmine\Server;
 use skh6075\api\minigame\event\PlayerGameRoomJoinEvent;
 use skh6075\api\minigame\event\PlayerGameRoomQuitEvent;
 use skh6075\api\minigame\generator\MapGenerator;
@@ -146,4 +148,18 @@ abstract class GameRoom{
 	}
 
 	abstract public function session(): MiniGamePlayerSessionStorage;
+
+	public function broadcastMessage(string $text, ?array $targets = null): void{
+		if($targets === null){
+			$targets = $this->participants;
+		}
+		Server::getInstance()->broadcastMessage($text, $targets);
+	}
+
+	public function broadcastActionBarMessage(string $text, ?array $targets = null): void{
+		if($targets === null){
+			$targets = $this->participants;
+		}
+		Server::getInstance()->broadcastPackets($targets, [SetTitlePacket::actionBarMessage($text)]);
+	}
 }
