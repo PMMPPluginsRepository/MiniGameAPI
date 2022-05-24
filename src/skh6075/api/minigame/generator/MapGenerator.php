@@ -44,11 +44,11 @@ final class MapGenerator{
 	private PrefixedLogger $logger;
 
 	public function __construct(array $zipFiles){
+		$this->logger = new PrefixedLogger(Server::getInstance()->getLogger(), "MapGenerator");
 		foreach($zipFiles as $identifier => $filePath){
 			$this->addZipFile($identifier, $filePath);
 		}
 		$this->worldManager = Server::getInstance()->getWorldManager();
-		$this->logger = new PrefixedLogger(Server::getInstance()->getLogger(), "MapGenerator");
 	}
 
 	private function addZipFile(string $identifier, string $filePath): void{
@@ -61,10 +61,11 @@ final class MapGenerator{
 		if(pathinfo($filePath, PATHINFO_EXTENSION) !== "zip"){
 			throw new InvalidArgumentException("File registration is possible only with extension zip.");
 		}
-		if((new ZipArchive())->open($filePath) !== true){
+		$zipArchive = new ZipArchive();
+		if($zipArchive->open($filePath) !== true){
 			throw new InvalidArgumentException("Unable to access file " . pathinfo($filePath, PATHINFO_BASENAME));
 		}
-		$this->zipArchives[$identifier] = $filePath;
+		$this->zipArchives[$identifier] = $zipArchive;
 		$this->logger->debug("Successfully added compressed file to \"$filePath\" path with $identifier");
 	}
 
@@ -82,7 +83,7 @@ final class MapGenerator{
 				mkdir($dest, 0777, true);
 			}
 		}
-		return (clone $this->zipArchives[$identifier])->extractTo($dest);
+		return $this->zipArchives[$identifier]->extractTo($dest);
 	}
 
 	public function restore(World $world, string $identifier, string $dest, bool $reset = true): bool{

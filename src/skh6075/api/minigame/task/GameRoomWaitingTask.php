@@ -24,6 +24,9 @@ abstract class GameRoomWaitingTask extends MiniGameTask{
 	}
 
 	public function setMode(int $mode = self::MODE_WAIT): void{
+		if($mode === self::MODE_START_QUEUE){
+			$this->start_queue = $this->queue;
+		}
 		$this->mode = $mode;
 	}
 
