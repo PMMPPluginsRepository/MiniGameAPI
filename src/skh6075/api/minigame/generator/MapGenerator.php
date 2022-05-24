@@ -78,6 +78,9 @@ final class MapGenerator{
 		}
 		if($reset){
 			Filesystem::recursiveUnlink($dest);
+			if(!is_dir($dest)){
+				mkdir($dest, 0777, true);
+			}
 		}
 		return (clone $this->zipArchives[$identifier])->extractTo($dest);
 	}
