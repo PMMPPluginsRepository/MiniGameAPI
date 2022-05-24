@@ -136,6 +136,7 @@ abstract class GameRoom{
 	}
 
 	public function setTaskHandler(?TaskHandler $handler = null): void{
+		$this->taskHandler?->cancel();
 		$this->taskHandler = $handler;
 	}
 
