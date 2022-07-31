@@ -38,7 +38,7 @@ abstract class GameRoom{
 		private ?TeamManager $teamManager = null,
 	){}
 
-	final public function getPrefix(): string{
+	public function getPrefix(): string{
 		return "§l§b[$this->name]§r§7 ";
 	}
 

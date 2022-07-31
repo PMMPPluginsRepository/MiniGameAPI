@@ -1,6 +1,6 @@
 name: MiniGameAPI
 antigen: skh6075\api\minigame
-api: 4.0.0
+api: 5.0.0
 version: 1.0.0
 author: skh6075
 php: [7.4, 8.0]
